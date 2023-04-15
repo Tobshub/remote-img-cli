@@ -4,7 +4,7 @@ import mimeTypes from "mime-types";
 import axios from "axios";
 import { config } from "dotenv";
 
-const tokenStorePath = "$HOME/.local/.tobsmg-env";
+const tokenStorePath = `${process.env.HOME}/.local/.tobsmg-env`;
 config({ path: tokenStorePath });
 
 console.log("Tobsmg CLI (v1.0.0) - upload images to Tobsmg server");
@@ -94,8 +94,10 @@ async function getUserToken(email: string, password: string) {
     return;
   }
   const token = res.data.result.data.value;
-  console.log(token);
-  // const secretsFile = await fs.open("/home/tobs/.local/.tobsmg-env");
+  console.log("Writing user token to:", tokenStorePath);
+  await fs
+    .writeFile(tokenStorePath, `TOBSMG_TOKEN="${token}"`, "utf-8")
+    .catch((e) => console.error("Failed to write token"));
 }
 
 function displayHelpMessage() {
