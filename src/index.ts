@@ -4,12 +4,12 @@ import mimeTypes from "mime-types";
 import axios from "axios";
 import { config } from "dotenv";
 
-const tokenStorePath =
+const envStorePath =
   process.env.NODE_ENV !== "dev"
     ? `${process.env.HOME}/.local/.tobsmg-env`
     : `${process.cwd()}/.env`;
 // load "env" file into `process.env`
-config({ path: tokenStorePath });
+config({ path: envStorePath });
 
 console.log("Tobsmg CLI (v1.0.0) - upload images to Tobsmg server");
 
@@ -38,7 +38,7 @@ async function main() {
     }
     await fs
       .writeFile(
-        tokenStorePath,
+        envStorePath,
         `TOBSMG_SERVER_URL="${serverUrl}"\nTOBSMG_TOKEN="${tobsmgToken}"`,
         "utf-8"
       )
@@ -136,10 +136,10 @@ async function getUserToken(email: string, password: string) {
     return;
   }
   const token = res.data.result.data.value;
-  console.log("Writing user token to:", tokenStorePath);
+  console.log("Writing user token to:", envStorePath);
   await fs
     .writeFile(
-      tokenStorePath,
+      envStorePath,
       `TOBSMG_SERVER_URL="${remoteServerUrl ?? ""}"\nTOBSMG_TOKEN="${token}"`,
       "utf-8"
     )
