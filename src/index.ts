@@ -28,6 +28,10 @@ async function main() {
   const remoteServerUrlStart = args.indexOf("--server");
   if (remoteServerUrlStart > -1) {
     const serverUrl = args[remoteServerUrlStart + 1];
+    if (!serverUrl) {
+      console.log("Server url is set to:", serverUrl);
+      return;
+    }
     await fs
       .writeFile(
         tokenStorePath,
