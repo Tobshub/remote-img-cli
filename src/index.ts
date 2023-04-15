@@ -60,6 +60,13 @@ async function main() {
     return;
   }
 
+  if (!process.env.TOBSMG_TOKEN) {
+    console.error(
+      "Error: Auth Token is missing\nPlease run `tobsmg --login <email> <password>`"
+    );
+    return;
+  }
+
   const uploadPathsStart = args.indexOf("--upload");
   if (uploadPathsStart === -1) {
     displayHelpMessage();
