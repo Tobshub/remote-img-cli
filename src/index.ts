@@ -4,7 +4,10 @@ import mimeTypes from "mime-types";
 import axios from "axios";
 import { config } from "dotenv";
 
-const tokenStorePath = `${process.env.HOME}/.local/.tobsmg-env`;
+const tokenStorePath =
+  process.env.NODE_ENV !== "dev"
+    ? `${process.env.HOME}/.local/.tobsmg-env`
+    : `${process.cwd()}/.env`;
 config({ path: tokenStorePath });
 
 console.log("Tobsmg CLI (v1.0.0) - upload images to Tobsmg server");
