@@ -10,13 +10,19 @@ config({ path: tokenStorePath });
 console.log("Tobsmg CLI (v1.0.0) - upload images to Tobsmg server");
 
 const args = process.argv;
-const remoteServerUrl =
-  process.env.TOBSMG_SERVER_URL ?? "http://localhost:4000";
+const remoteServerUrl = process.env.TOBSMG_SERVER_URL;
 
 async function main() {
   const isHelp = args.includes("--help") || args.includes("-h");
   if (isHelp) {
     displayHelpMessage();
+    return;
+  }
+
+  if (!remoteServerUrl) {
+    console.error(
+      "Please set the server url with `tobsmg --server <server-url>`"
+    );
     return;
   }
 
@@ -106,5 +112,7 @@ function displayHelpMessage() {
   
   Before you use Tobsmg CLI, make sure to run \`tobsmg --login <email> <password>\` to get an auth token
   The auth token expires after 30 days, so make sure to login again when the time comes.
+
+  Make sure you run \`tobsmg --server <server-url>\` to set the server url for image uploads to set the server url for image uploads.
 `);
 }
