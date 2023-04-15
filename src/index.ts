@@ -19,6 +19,22 @@ async function main() {
     return;
   }
 
+  const remoteServerUrlStart = args.indexOf("--server");
+  if (remoteServerUrlStart > -1) {
+    const serverUrl = args[remoteServerUrlStart + 1];
+    await fs
+      .writeFile(
+        tokenStorePath,
+        `TOBSMG_SERVER_URL="${serverUrl}"\nTOBSMG_TOKEN="${
+          process.env.TOBSMG_TOKEN ?? ""
+        }"`,
+        "utf-8"
+      )
+      .then(() => console.log("Set server url for tobsmg"))
+      .catch((e) => console.error("Failed to write server url"));
+    return;
+  }
+
   if (!remoteServerUrl) {
     console.error(
       "Please set the server url with `tobsmg --server <server-url>`"
@@ -100,7 +116,11 @@ async function getUserToken(email: string, password: string) {
   const token = res.data.result.data.value;
   console.log("Writing user token to:", tokenStorePath);
   await fs
-    .writeFile(tokenStorePath, `TOBSMG_TOKEN="${token}"`, "utf-8")
+    .writeFile(
+      tokenStorePath,
+      `TOBSMG_SERVER_URL="${remoteServerUrl ?? ""}"\nTOBSMG_TOKEN="${token}"`,
+      "utf-8"
+    )
     .catch((e) => console.error("Failed to write token"));
 }
 
