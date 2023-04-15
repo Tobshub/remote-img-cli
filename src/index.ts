@@ -10,7 +10,10 @@ config({ path: tokenStorePath });
 console.log("Tobsmg CLI (v1.0.0) - upload images to Tobsmg server");
 
 const args = process.argv;
-const remoteServerUrl = process.env.TOBSMG_SERVER_URL;
+const remoteServerUrl =
+  process.env.NODE_ENV !== "dev"
+    ? process.env.TOBSMG_SERVER_URL
+    : "http://localhost:4000";
 
 async function main() {
   const isHelp = args.includes("--help") || args.includes("-h");
