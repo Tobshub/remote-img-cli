@@ -17,6 +17,7 @@ const remoteServerUrl =
   process.env.NODE_ENV !== "dev"
     ? process.env.TOBSMG_SERVER_URL
     : "http://localhost:4000";
+const tobsmgToken = process.env.TOBSMG_TOKEN ?? "";
 
 async function main() {
   const isHelp = args.includes("--help") || args.includes("-h");
@@ -35,13 +36,11 @@ async function main() {
     await fs
       .writeFile(
         tokenStorePath,
-        `TOBSMG_SERVER_URL="${serverUrl}"\nTOBSMG_TOKEN="${
-          process.env.TOBSMG_TOKEN ?? ""
-        }"`,
+        `TOBSMG_SERVER_URL="${serverUrl}"\nTOBSMG_TOKEN="${tobsmgToken}"`,
         "utf-8"
       )
       .then(() => console.log("Set server url for tobsmg"))
-      .catch((e) => console.error("Failed to write server url"));
+      .catch((_) => console.error("Failed to write server url"));
     return;
   }
 
@@ -64,7 +63,7 @@ async function main() {
     return;
   }
 
-  if (!process.env.TOBSMG_TOKEN) {
+  if (!tobsmgToken) {
     console.error(
       "Error: Auth Token is missing\nPlease run `tobsmg --login <email> <password>`"
     );
@@ -108,7 +107,7 @@ async function imageUpload(data: string, type: string, imagePath: string) {
       { data, type },
       {
         baseURL: remoteServerUrl,
-        headers: { authorization: process.env.TOBSMG_TOKEN },
+        headers: { authorization: tobsmgToken },
       }
     )
     .catch((_) => console.error("Failed to upload image", _));
@@ -138,7 +137,7 @@ async function getUserToken(email: string, password: string) {
       `TOBSMG_SERVER_URL="${remoteServerUrl ?? ""}"\nTOBSMG_TOKEN="${token}"`,
       "utf-8"
     )
-    .catch((e) => console.error("Failed to write token"));
+    .catch((_) => console.error("Failed to write token"));
 }
 
 function displayHelpMessage() {
