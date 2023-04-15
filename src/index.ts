@@ -1,0 +1,110 @@
+import path from "path";
+import fs from "fs/promises";
+import mimeTypes from "mime-types";
+import axios from "axios";
+import { config } from "dotenv";
+
+const tokenStorePath = "$HOME/.local/.tobsmg-env";
+config({ path: tokenStorePath });
+
+console.log("Tobsmg CLI (v1.0.0) - upload images to Tobsmg server");
+
+const args = process.argv;
+const remoteServerUrl = "http://localhost:4000";
+
+async function main() {
+  const isHelp = args.includes("--help") || args.includes("-h");
+  if (isHelp) {
+    displayHelpMessage();
+    return;
+  }
+
+  const loginArgsStart = args.indexOf("--login");
+  if (loginArgsStart > -1) {
+    const email = args[loginArgsStart + 1];
+    const password = args[loginArgsStart + 2];
+    if (!email || !password) {
+      console.error("Email or Password is missing");
+      return;
+    }
+    await getUserToken(email, password);
+    return;
+  }
+
+  const uploadPathsStart = args.indexOf("--upload");
+  if (uploadPathsStart === -1) {
+    displayHelpMessage();
+    return;
+  }
+  const searchPathIndexStart = uploadPathsStart + 1;
+
+  const location = process.cwd();
+  for (let i = searchPathIndexStart; i < args.length; i++) {
+    await uploadImageAtPath(args[i], location);
+  }
+}
+
+main();
+
+async function uploadImageAtPath(imageLocation: string, pwd: string) {
+  const relativePath = path.resolve(pwd, imageLocation);
+  const fileType = mimeTypes.lookup(relativePath);
+  const fileData = await fs
+    .readFile(relativePath, { encoding: "base64" })
+    .catch((_) => console.error("Can't Find Image File:", relativePath));
+  if (!fileData) return;
+  if (!fileType || !fileType.startsWith("image")) {
+    console.error("Can't upload non-image file:", relativePath);
+    return;
+  }
+  await imageUpload(fileData, fileType, relativePath);
+}
+
+async function imageUpload(data: string, type: string, imagePath: string) {
+  console.log("Uploading image at:", imagePath);
+  await fetch(`${remoteServerUrl}/api/upload.permUpload`, {
+    mode: "cors",
+    method: "POST",
+    body: JSON.stringify({ data, type }),
+  })
+    .then(async (res) => await res.json())
+    .then((res) => {
+      console.log(res);
+      return res.data;
+    })
+    .then((data) =>
+      data.ok
+        ? console.log(
+            "Uploaded Image at:",
+            imagePath,
+            "\nImage is available at:",
+            `${remoteServerUrl}/img/${data.value}`
+          )
+        : console.error("Failed to upload image at:", imagePath)
+    )
+    .catch((e) => console.error("Failed to upload image at:", imagePath, e));
+}
+
+async function getUserToken(email: string, password: string) {
+  const res = await axios
+    .post("/api/auth.login", { email, password }, { baseURL: remoteServerUrl })
+    .catch((_) => null);
+  if (!res) {
+    console.error("Authentication Failed: Please try again");
+    return;
+  }
+  const token = res.data.result.data.value;
+  console.log(token);
+  // const secretsFile = await fs.open("/home/tobs/.local/.tobsmg-env");
+}
+
+function displayHelpMessage() {
+  console.log(`
+  Tobsmg CLI is a tool to upload images to the Tobsmg Remote Server
+  You can upload any number of images at once by running: 
+  \`tobsmg --upload path-to-img1 path-to-img2 ... path-to-imgn\`
+  
+  Before you use Tobsmg CLI, make sure to run \`tobsmg --login <email> <password>\` to get an auth token
+  The auth token expires after 30 days, so make sure to login again when the time comes.
+`);
+}
