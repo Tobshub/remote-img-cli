@@ -30,7 +30,7 @@ async function main() {
   if (remoteServerUrlStart > -1) {
     const serverUrl = args[remoteServerUrlStart + 1];
     if (!serverUrl) {
-      console.log("Server url is set to:", serverUrl);
+      console.log("Server url is set to:", remoteServerUrl);
       return;
     }
     await fs
