@@ -10,7 +10,8 @@ config({ path: tokenStorePath });
 console.log("Tobsmg CLI (v1.0.0) - upload images to Tobsmg server");
 
 const args = process.argv;
-const remoteServerUrl = "http://localhost:4000";
+const remoteServerUrl =
+  process.env.TOBSMG_SERVER_URL ?? "http://localhost:4000";
 
 async function main() {
   const isHelp = args.includes("--help") || args.includes("-h");
@@ -62,27 +63,24 @@ async function uploadImageAtPath(imageLocation: string, pwd: string) {
 
 async function imageUpload(data: string, type: string, imagePath: string) {
   console.log("Uploading image at:", imagePath);
-  await fetch(`${remoteServerUrl}/api/upload.permUpload`, {
-    mode: "cors",
-    method: "POST",
-    body: JSON.stringify({ data, type }),
-  })
-    .then(async (res) => await res.json())
-    .then((res) => {
-      console.log(res);
-      return res.data;
-    })
-    .then((data) =>
-      data.ok
-        ? console.log(
-            "Uploaded Image at:",
-            imagePath,
-            "\nImage is available at:",
-            `${remoteServerUrl}/img/${data.value}`
-          )
-        : console.error("Failed to upload image at:", imagePath)
+  const res = await axios
+    .post(
+      "/api/upload.permUpload",
+      { data, type },
+      {
+        baseURL: remoteServerUrl,
+        headers: { authorization: process.env.TOBSMG_TOKEN },
+      }
     )
-    .catch((e) => console.error("Failed to upload image at:", imagePath, e));
+    .catch((_) => console.error("Failed to upload image", _));
+  if (!res) {
+    return;
+  }
+  const imgRef = res.data.result.data.value;
+  console.log(`
+Uploaded Image at: ${imagePath}
+Image is available at: ${remoteServerUrl}/img/${imgRef}
+`);
 }
 
 async function getUserToken(email: string, password: string) {
