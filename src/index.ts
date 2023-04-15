@@ -8,15 +8,18 @@ const tokenStorePath =
   process.env.NODE_ENV !== "dev"
     ? `${process.env.HOME}/.local/.tobsmg-env`
     : `${process.cwd()}/.env`;
+// load "env" file into `process.env`
 config({ path: tokenStorePath });
 
 console.log("Tobsmg CLI (v1.0.0) - upload images to Tobsmg server");
 
 const args = process.argv;
+/** Server url to upload images to */
 const remoteServerUrl =
   process.env.NODE_ENV !== "dev"
     ? process.env.TOBSMG_SERVER_URL
     : "http://localhost:4000";
+/** Auth token for upload requests */
 const tobsmgToken = process.env.TOBSMG_TOKEN ?? "";
 
 async function main() {
@@ -85,6 +88,7 @@ async function main() {
 
 main();
 
+/** Reads file data and sends it to the server */
 async function uploadImageAtPath(imageLocation: string, pwd: string) {
   const relativePath = path.resolve(pwd, imageLocation);
   const fileType = mimeTypes.lookup(relativePath);
@@ -99,6 +103,7 @@ async function uploadImageAtPath(imageLocation: string, pwd: string) {
   await imageUpload(fileData, fileType, relativePath);
 }
 
+/** Send image data and type to ther server */
 async function imageUpload(data: string, type: string, imagePath: string) {
   console.log("Uploading image at:", imagePath);
   const res = await axios
@@ -121,6 +126,7 @@ Image is available at: ${remoteServerUrl}/img/${imgRef}
 `);
 }
 
+/** Request user token */
 async function getUserToken(email: string, password: string) {
   const res = await axios
     .post("/api/auth.login", { email, password }, { baseURL: remoteServerUrl })
@@ -140,6 +146,7 @@ async function getUserToken(email: string, password: string) {
     .catch((_) => console.error("Failed to write token"));
 }
 
+/** General usage instructions */
 function displayHelpMessage() {
   console.log(`
   Tobsmg CLI is a tool to upload images to the Tobsmg Remote Server
