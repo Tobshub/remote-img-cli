@@ -73,23 +73,36 @@ async function main() {
     return;
   }
 
-  const uploadPathsStart = args.indexOf("--upload");
-  if (uploadPathsStart === -1) {
-    displayHelpMessage();
+  const tempUploadPathsStart = args.indexOf("--temp-upload");
+  if (tempUploadPathsStart > -1) {
+    const searchPathIndexStart = tempUploadPathsStart + 1;
+
+    const location = process.cwd();
+    for (let i = searchPathIndexStart; i < args.length; i++) {
+      await uploadImageAtPath(args[i], location, {isTemp: true});
+    }
     return;
   }
-  const searchPathIndexStart = uploadPathsStart + 1;
 
-  const location = process.cwd();
-  for (let i = searchPathIndexStart; i < args.length; i++) {
-    await uploadImageAtPath(args[i], location);
+  const uploadPathsStart = args.indexOf("--upload");
+  if (uploadPathsStart > -1) {
+    const searchPathIndexStart = uploadPathsStart + 1;
+
+    const location = process.cwd();
+    for (let i = searchPathIndexStart; i < args.length; i++) {
+      await uploadImageAtPath(args[i], location);
+    }
+    return;
   }
+  
+  // display help message if nothing happens
+  displayHelpMessage();
 }
 
 main();
 
 /** Reads file data and sends it to the server */
-async function uploadImageAtPath(imageLocation: string, pwd: string) {
+async function uploadImageAtPath(imageLocation: string, pwd: string, options?: {isTemp?: boolean}) {
   const relativePath = path.resolve(pwd, imageLocation);
   const fileType = mimeTypes.lookup(relativePath);
   const fileData = await fs
@@ -100,11 +113,16 @@ async function uploadImageAtPath(imageLocation: string, pwd: string) {
     console.error("Can't upload non-image file:", relativePath);
     return;
   }
-  await imageUpload(fileData, fileType, relativePath);
+  if (options?.isTemp) {
+    await tempImageUpload(fileData, fileType, relativePath);
+    return;
+  }
+  await permImageUpload(fileData, fileType, relativePath);
+  return;
 }
 
 /** Send image data and type to ther server */
-async function imageUpload(data: string, type: string, imagePath: string) {
+async function permImageUpload(data: string, type: string, imagePath: string) {
   console.log("Uploading image at:", imagePath);
   const res = await axios
     .post(
@@ -121,8 +139,30 @@ async function imageUpload(data: string, type: string, imagePath: string) {
   }
   const imgRef = res.data.result.data.value;
   console.log(`
-Uploaded Image at: ${imagePath}
+Uploaded image at: ${imagePath}
 Image is available at: ${remoteServerUrl}/img/${imgRef}
+`);
+}
+
+async function tempImageUpload(data: string, type: string, imagePath: string) {
+  console.log("Uploading image at:", imagePath);
+  const res = await axios
+    .post(
+      "/api/upload.tempUpload",
+      { data, type },
+      {
+        baseURL: remoteServerUrl,
+        headers: { authorization: tobsmgToken },
+      }
+    )
+    .catch((_) => console.error("Failed to upload image", _));
+  if (!res) {
+    return;
+  }
+  const imgRef = res.data.result.data.value;
+  console.log(`
+Uploaded image at: ${imagePath}
+Image is available at: ${remoteServerUrl}/img/${imgRef} for 30 minutes
 `);
 }
 
@@ -153,7 +193,7 @@ Tobsmg CLI is a tool to upload images to the Tobsmg Remote Server
 You can upload any number of images at once by running: 
 \`tobsmg --upload path-to-img1 path-to-img2 ... path-to-img<n>\`
 or for temporary uploads(lasts 30 minutes) run:
-\`tobsmg --tmp-upload path-to-img1 path-to-img2 ... path-to-img<n>\`
+\`tobsmg --temp-upload path-to-img1 path-to-img2 ... path-to-img<n>\`
 
 Before you use Tobsmg CLI, make sure to run \`tobsmg --login <email> <password>\` to get an auth token
 The auth token expires after 30 days, so make sure to login again when the time comes.
