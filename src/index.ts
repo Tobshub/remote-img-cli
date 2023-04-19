@@ -144,7 +144,7 @@ async function uploadImageToServer(
   }
   const imgRef = res.data.result.data.value;
   console.log(
-    `Image is available at: ${remoteServerUrl}/img/${imgRef}`,
+    `Image ${name} is available at: ${remoteServerUrl}/img/${imgRef}`,
     options?.isTemp && "for 30 minutes"
   );
 }
