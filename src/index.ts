@@ -79,7 +79,7 @@ async function main() {
 
     const location = process.cwd();
     for (let i = searchPathIndexStart; i < args.length; i++) {
-      await uploadImageAtPath(args[i], location, {isTemp: true});
+      await uploadImageAtPath(args[i], location, { isTemp: true });
     }
     return;
   }
@@ -94,7 +94,7 @@ async function main() {
     }
     return;
   }
-  
+
   // display help message if nothing happens
   displayHelpMessage();
 }
@@ -102,7 +102,11 @@ async function main() {
 main();
 
 /** Reads file data and sends it to the server */
-async function uploadImageAtPath(imageLocation: string, pwd: string, options?: {isTemp?: boolean}) {
+async function uploadImageAtPath(
+  imageLocation: string,
+  pwd: string,
+  options?: { isTemp?: boolean }
+) {
   const relativePath = path.resolve(pwd, imageLocation);
   const fileType = mimeTypes.lookup(relativePath);
   const fileName = path.basename(relativePath);
@@ -115,19 +119,19 @@ async function uploadImageAtPath(imageLocation: string, pwd: string, options?: {
     return;
   }
   console.log("Uploading image at:", relativePath);
-  if (options?.isTemp) {
-    await tempImageUpload(fileData, fileType, fileName);
-    return;
-  }
-  await permImageUpload(fileData, fileType, fileName);
-  return;
+  uploadImageToServer(fileData, fileType, fileName, options);
 }
 
-/** Send image data and type to ther server */
-async function permImageUpload(data: string, type: string, name: string) {
+/** Send image data to ther server */
+async function uploadImageToServer(
+  data: string,
+  type: string,
+  name: string,
+  options?: { isTemp?: boolean }
+) {
   const res = await axios
     .post(
-      "/api/upload.permUpload",
+      options?.isTemp ? "/api/upload.tempUpload" : "/api/upload.permUpload",
       { data, type, name },
       {
         baseURL: remoteServerUrl,
@@ -139,25 +143,10 @@ async function permImageUpload(data: string, type: string, name: string) {
     return;
   }
   const imgRef = res.data.result.data.value;
-  console.log(`Image is available at: ${remoteServerUrl}/img/${imgRef}`);
-}
-
-async function tempImageUpload(data: string, type: string, name: string) {
-  const res = await axios
-    .post(
-      "/api/upload.tempUpload",
-      { data, type, name },
-      {
-        baseURL: remoteServerUrl,
-        headers: { authorization: tobsmgToken },
-      }
-    )
-    .catch((_) => console.error("Failed to upload image", _));
-  if (!res) {
-    return;
-  }
-  const imgRef = res.data.result.data.value;
-  console.log(`Image is available at: ${remoteServerUrl}/img/${imgRef} for 30 minutes`);
+  console.log(
+    `Image is available at: ${remoteServerUrl}/img/${imgRef}`,
+    options?.isTemp && "for 30 minutes"
+  );
 }
 
 /** Request user token */
