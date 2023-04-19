@@ -105,6 +105,7 @@ main();
 async function uploadImageAtPath(imageLocation: string, pwd: string, options?: {isTemp?: boolean}) {
   const relativePath = path.resolve(pwd, imageLocation);
   const fileType = mimeTypes.lookup(relativePath);
+  const fileName = path.basename(relativePath);
   const fileData = await fs
     .readFile(relativePath, { encoding: "base64" })
     .catch((_) => console.error("Can't Find Image File:", relativePath));
@@ -115,19 +116,19 @@ async function uploadImageAtPath(imageLocation: string, pwd: string, options?: {
   }
   console.log("Uploading image at:", relativePath);
   if (options?.isTemp) {
-    await tempImageUpload(fileData, fileType);
+    await tempImageUpload(fileData, fileType, fileName);
     return;
   }
-  await permImageUpload(fileData, fileType);
+  await permImageUpload(fileData, fileType, fileName);
   return;
 }
 
 /** Send image data and type to ther server */
-async function permImageUpload(data: string, type: string) {
+async function permImageUpload(data: string, type: string, name: string) {
   const res = await axios
     .post(
       "/api/upload.permUpload",
-      { data, type },
+      { data, type, name },
       {
         baseURL: remoteServerUrl,
         headers: { authorization: tobsmgToken },
@@ -141,11 +142,11 @@ async function permImageUpload(data: string, type: string) {
   console.log(`Image is available at: ${remoteServerUrl}/img/${imgRef}`);
 }
 
-async function tempImageUpload(data: string, type: string) {
+async function tempImageUpload(data: string, type: string, name: string) {
   const res = await axios
     .post(
       "/api/upload.tempUpload",
-      { data, type },
+      { data, type, name },
       {
         baseURL: remoteServerUrl,
         headers: { authorization: tobsmgToken },
