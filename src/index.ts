@@ -119,7 +119,7 @@ async function uploadImageAtPath(
     return;
   }
   console.log("Uploading image at:", relativePath);
-  uploadImageToServer(fileData, fileType, fileName, options);
+  await uploadImageToServer(fileData, fileType, fileName, options);
 }
 
 /** Send image data to ther server */
@@ -144,7 +144,7 @@ async function uploadImageToServer(
   }
   const imgRef = res.data.result.data.value;
   console.log(
-    `Image ${name} is available at: ${remoteServerUrl}/img/${imgRef}`,
+    `Image is available at: ${remoteServerUrl}/img/${imgRef}`,
     options?.isTemp && "for 30 minutes"
   );
 }
