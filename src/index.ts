@@ -113,17 +113,17 @@ async function uploadImageAtPath(imageLocation: string, pwd: string, options?: {
     console.error("Can't upload non-image file:", relativePath);
     return;
   }
+  console.log("Uploading image at:", relativePath);
   if (options?.isTemp) {
-    await tempImageUpload(fileData, fileType, relativePath);
+    await tempImageUpload(fileData, fileType);
     return;
   }
-  await permImageUpload(fileData, fileType, relativePath);
+  await permImageUpload(fileData, fileType);
   return;
 }
 
 /** Send image data and type to ther server */
-async function permImageUpload(data: string, type: string, imagePath: string) {
-  console.log("Uploading image at:", imagePath);
+async function permImageUpload(data: string, type: string) {
   const res = await axios
     .post(
       "/api/upload.permUpload",
@@ -138,14 +138,10 @@ async function permImageUpload(data: string, type: string, imagePath: string) {
     return;
   }
   const imgRef = res.data.result.data.value;
-  console.log(`
-Uploaded image at: ${imagePath}
-Image is available at: ${remoteServerUrl}/img/${imgRef}
-`);
+  console.log(`Image is available at: ${remoteServerUrl}/img/${imgRef}`);
 }
 
-async function tempImageUpload(data: string, type: string, imagePath: string) {
-  console.log("Uploading image at:", imagePath);
+async function tempImageUpload(data: string, type: string) {
   const res = await axios
     .post(
       "/api/upload.tempUpload",
@@ -160,10 +156,7 @@ async function tempImageUpload(data: string, type: string, imagePath: string) {
     return;
   }
   const imgRef = res.data.result.data.value;
-  console.log(`
-Uploaded image at: ${imagePath}
-Image is available at: ${remoteServerUrl}/img/${imgRef} for 30 minutes
-`);
+  console.log(`Image is available at: ${remoteServerUrl}/img/${imgRef} for 30 minutes`);
 }
 
 /** Request user token */
