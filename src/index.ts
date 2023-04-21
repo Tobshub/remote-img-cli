@@ -172,15 +172,15 @@ async function getUserToken(email: string, password: string) {
 /** General usage instructions */
 function displayHelpMessage() {
   console.log(`
-Tobsmg CLI is a tool to upload images to the Tobsmg Remote Server
-You can upload any number of images at once by running: 
-\`tobsmg --upload path-to-img1 path-to-img2 ... path-to-img<n>\`
-or for temporary uploads(lasts 30 minutes) run:
-\`tobsmg --temp-upload path-to-img1 path-to-img2 ... path-to-img<n>\`
+Tobsmg CLI - v1.0.0
 
-Before you use Tobsmg CLI, make sure to run \`tobsmg --login <email> <password>\` to get an auth token
-The auth token expires after 30 days, so make sure to login again when the time comes.
+Usage:
 
-Make sure you run \`tobsmg --server <server-url>\` to set the server url for image uploads to set the server url for image uploads.
+    --login <email> <password>  Authenticate user and get auth token from server                    
+    --server                    Check the set remote server url
+    --server <server-url>       Configure the remote server url
+    -u, --upload                Upload files to the server. E.g. -u ./path/to/img1 ../path/to/img2 ...
+    -t, --temp-upload           Temporarily Upload files to the server 
+    -h, --help                  Display this help message
 `);
 }
