@@ -172,8 +172,6 @@ async function getUserToken(email: string, password: string) {
 /** General usage instructions */
 function displayHelpMessage() {
   console.log(`
-Tobsmg CLI - v1.0.0
-
 Usage:
 
     --login <email> <password>  Authenticate user and get auth token from server                    
