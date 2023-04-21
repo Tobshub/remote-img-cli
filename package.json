@@ -6,7 +6,7 @@
   "scripts": {
     "start": "NODE_ENV=\"dev\" node ./dist/index.js",
     "bundle": "rollup -c",
-    "executable": "pkg -o ./pkg-out/tobsmg ./dist/index.js",
+    "executable": "pkg -o ./pkg-out/tobsmg -t node18-linux,node18-win,node18-mac ./dist/index.js",
     "build": "pnpm bundle && pnpm executable"
   },
   "keywords": [],
