@@ -11,92 +11,84 @@ const envStorePath =
 // load "env" file into `process.env`
 config({ path: envStorePath });
 
-console.log("Tobsmg CLI (v1.0.0) - upload images to Tobsmg server");
+console.log("Tobsmg CLI v1.0.0 - upload images to Tobsmg server");
 
 const args = process.argv;
 /** Server url to upload images to */
-const remoteServerUrl =
-  process.env.NODE_ENV !== "dev"
-    ? process.env.TOBSMG_SERVER_URL
-    : "http://localhost:4000";
+const remoteServerUrl = process.env.TOBSMG_SERVER_URL;
 /** Auth token for upload requests */
 const tobsmgToken = process.env.TOBSMG_TOKEN ?? "";
 
 async function main() {
-  const isHelp = args.includes("--help") || args.includes("-h");
-  if (isHelp) {
-    displayHelpMessage();
-    return;
-  }
-
-  const remoteServerUrlStart = args.indexOf("--server");
-  if (remoteServerUrlStart > -1) {
-    const serverUrl = args[remoteServerUrlStart + 1];
-    if (!serverUrl) {
-      console.log("Server url is set to:", remoteServerUrl);
-      return;
+  const command = args[2];
+  switch (command) {
+    case "--help":
+    case "-h": {
+      displayHelpMessage();
+      break;
     }
-    await fs
-      .writeFile(
-        envStorePath,
-        `TOBSMG_SERVER_URL="${serverUrl}"\nTOBSMG_TOKEN="${tobsmgToken}"`,
-        "utf-8"
-      )
-      .then(() => console.log("Set server url for tobsmg"))
-      .catch((_) => console.error("Failed to write server url"));
-    return;
-  }
-
-  if (!remoteServerUrl) {
-    console.error(
-      "Please set the server url with `tobsmg --server <server-url>`"
-    );
-    return;
-  }
-
-  const loginArgsStart = args.indexOf("--login");
-  if (loginArgsStart > -1) {
-    const email = args[loginArgsStart + 1];
-    const password = args[loginArgsStart + 2];
-    if (!email || !password) {
-      console.error("Email or Password is missing");
-      return;
+    case "--server": {
+      const serverUrl = args[3];
+      if (!serverUrl) {
+        console.log("Server url is set to:", remoteServerUrl);
+        break;
+      }
+      await fs
+        .writeFile(
+          envStorePath,
+          `TOBSMG_SERVER_URL="${serverUrl}"\nTOBSMG_TOKEN="${tobsmgToken}"`,
+          "utf-8"
+        )
+        .then(() => console.log("Set server url for tobsmg"))
+        .catch((_) => console.error("Failed to write server url"));
+      break;
     }
-    await getUserToken(email, password);
-    return;
-  }
 
-  if (!tobsmgToken) {
-    console.error(
-      "Error: Auth Token is missing\nPlease run `tobsmg --login <email> <password>`"
-    );
-    return;
-  }
+    case "--login": {
+      if (!remoteServerUrl) {
+        console.error(
+          "Please set the server url with `tobsmg --server <server-url>`"
+        );
+        break;
+      }
 
-  const tempUploadPathsStart = args.indexOf("--temp-upload");
-  if (tempUploadPathsStart > -1) {
-    const searchPathIndexStart = tempUploadPathsStart + 1;
-
-    const location = process.cwd();
-    for (let i = searchPathIndexStart; i < args.length; i++) {
-      await uploadImageAtPath(args[i], location, { isTemp: true });
+      const email = args[3];
+      const password = args[4];
+      if (!email || !password) {
+        console.error("Email or Password is missing");
+        break;
+      }
+      await getUserToken(email, password);
+      break;
     }
-    return;
-  }
+    case "--u":
+    case "--upload":
+    case "-t":
+    case "--temp-upload": {
+      if (!tobsmgToken) {
+        console.error(
+          "Error: Auth Token is missing\nPlease run `tobsmg --login <email> <password>`"
+        );
+        break;
+      }
 
-  const uploadPathsStart = args.indexOf("--upload");
-  if (uploadPathsStart > -1) {
-    const searchPathIndexStart = uploadPathsStart + 1;
-
-    const location = process.cwd();
-    for (let i = searchPathIndexStart; i < args.length; i++) {
-      await uploadImageAtPath(args[i], location);
+      const location = process.cwd();
+      for (let i = 3; i < args.length; i++) {
+        await uploadImageAtPath(
+          args[i],
+          location,
+          command === "-t" || command === "--temp-upload"
+            ? { isTemp: true }
+            : {}
+        );
+      }
+      break;
     }
-    return;
+    default: {
+      displayHelpMessage();
+      break;
+    }
   }
-
-  // display help message if nothing happens
-  displayHelpMessage();
 }
 
 main();
