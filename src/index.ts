@@ -44,6 +44,7 @@ async function main() {
       break;
     }
 
+    case "--auth":
     case "--login": {
       if (!remoteServerUrl) {
         console.error(
@@ -61,7 +62,7 @@ async function main() {
       await getUserToken(email, password);
       break;
     }
-    case "--u":
+    case "-u":
     case "--upload":
     case "-t":
     case "--temp-upload": {
