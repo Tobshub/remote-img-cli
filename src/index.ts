@@ -6,7 +6,7 @@ import { config } from "dotenv";
 
 const envStorePath =
   process.env.NODE_ENV !== "dev"
-    ? `${process.env.HOME}/.local/.tobsmg-env`
+    ? `${process.env.HOME}/.tobsmg-env`
     : `${process.cwd()}/.env`;
 // load "env" file into `process.env`
 config({ path: envStorePath });
